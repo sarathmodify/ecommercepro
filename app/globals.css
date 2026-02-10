@@ -1,26 +1,113 @@
 @import "tailwindcss";
 
+/* Custom Design System Colors */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary - Indigo/Blue */
+  --color-primary: #4F46E5;
+
+  /* Secondary - Violet */
+  --color-secondary: #7C3AED;
+
+  /* Background - White/Light gray */
+  --color-background: #FFFFFF;
+  --color-background-light: #F9FAFB;
+
+  /* Text - Dark gray */
+  --color-text: #111827;
+
+  /* Accent/CTA - Emerald/Green */
+  --color-accent: #10B981;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Primary Color */
+  --color-primary: #4F46E5;
+  --color-primary-50: #EEF2FF;
+  --color-primary-100: #E0E7FF;
+  --color-primary-200: #C7D2FE;
+  --color-primary-300: #A5B4FC;
+  --color-primary-400: #818CF8;
+  --color-primary-500: #6366F1;
+  --color-primary-600: #4F46E5;
+  --color-primary-700: #4338CA;
+  --color-primary-800: #3730A3;
+  --color-primary-900: #312E81;
+
+  /* Secondary Color - Violet */
+  --color-secondary: #7C3AED;
+  --color-secondary-50: #F5F3FF;
+  --color-secondary-100: #EDE9FE;
+  --color-secondary-200: #DDD6FE;
+  --color-secondary-300: #C4B5FD;
+  --color-secondary-400: #A78BFA;
+  --color-secondary-500: #8B5CF6;
+  --color-secondary-600: #7C3AED;
+  --color-secondary-700: #6D28D9;
+  --color-secondary-800: #5B21B6;
+  --color-secondary-900: #4C1D95;
+
+  /* Background Colors */
+  --color-background: #FFFFFF;
+  --color-background-light: #F9FAFB;
+  --color-background-gray: #F3F4F6;
+
+  /* Text Colors */
+  --color-text: #111827;
+  --color-text-light: #6B7280;
+  --color-text-lighter: #9CA3AF;
+
+  /* Accent/CTA - Emerald/Green */
+  --color-accent: #10B981;
+  --color-accent-50: #D1FAE5;
+  --color-accent-100: #A7F3D0;
+  --color-accent-200: #6EE7B7;
+  --color-accent-300: #34D399;
+  --color-accent-400: #10B981;
+  --color-accent-500: #059669;
+  --color-accent-600: #047857;
+  --color-accent-700: #065F46;
+  --color-accent-800: #064E3B;
+  --color-accent-900: #022C22;
+
+  /* Font Families */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base Styles */
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Utility Classes for Quick Access */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+.bg-accent {
+  background-color: var(--color-accent);
+}
+
+.bg-background-light {
+  background-color: var(--color-background-light);
 }
