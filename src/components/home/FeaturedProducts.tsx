@@ -40,7 +40,7 @@ export default function FeaturedProducts() {
             name: 'Ultra HD 4K Action Camera',
             price: 279.99,
             originalPrice: 349.99,
-            rating: 4.9,
+            rating: 3,
             reviews: 156,
             imageAlt: 'Action camera',
         },
@@ -48,7 +48,7 @@ export default function FeaturedProducts() {
             id: '4',
             name: 'Premium Leather Backpack',
             price: 89.99,
-            rating: 4.7,
+            rating: 5,
             reviews: 428,
             badge: 'Trending',
             imageAlt: 'Leather backpack',
@@ -100,8 +100,8 @@ export default function FeaturedProducts() {
                                         <div className="absolute top-3 left-3 flex flex-col gap-2">
                                             {product.badge && (
                                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${product.badge === 'Best Seller' ? 'bg-accent' :
-                                                        product.badge === 'New' ? 'bg-primary' :
-                                                            'bg-secondary'
+                                                    product.badge === 'New' ? 'bg-primary' :
+                                                        'bg-secondary'
                                                     }`}>
                                                     {product.badge}
                                                 </span>
@@ -134,8 +134,8 @@ export default function FeaturedProducts() {
                                                     <svg
                                                         key={i}
                                                         className={`w-4 h-4 ${i < Math.floor(product.rating)
-                                                                ? 'text-yellow-400 fill-current'
-                                                                : 'text-gray-300'
+                                                            ? 'text-yellow-400 fill-current'
+                                                            : 'text-gray-300'
                                                             }`}
                                                         fill="none"
                                                         stroke="currentColor"
