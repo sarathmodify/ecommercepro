@@ -1,4 +1,12 @@
-// Root Reducer
-// TODO: Combine all reducers here
+import { combineReducers } from '@reduxjs/toolkit';
+import productReducer from './slices/productSlice';
 
-export { };
+// ------------------------------------------------------------------
+// Root Reducer — combine all slice reducers here
+// ------------------------------------------------------------------
+const rootReducer = combineReducers({
+    products: productReducer,
+});
+
+export type RootState = ReturnType<typeof rootReducer>;
+export default rootReducer;

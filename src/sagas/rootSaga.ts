@@ -1,4 +1,12 @@
-// Root Saga
-// TODO: Combine all sagas here
+import { all, fork } from 'redux-saga/effects';
+import { watchFetchProducts, watchFetchProductById } from './productSaga';
 
-export { };
+// ------------------------------------------------------------------
+// Root Saga — forks all watcher sagas so they run concurrently
+// ------------------------------------------------------------------
+export default function* rootSaga() {
+    yield all([
+        fork(watchFetchProducts),
+        fork(watchFetchProductById),
+    ]);
+}
