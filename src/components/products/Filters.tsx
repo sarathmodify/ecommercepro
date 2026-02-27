@@ -93,7 +93,7 @@ export default function Filters({ filters, onFilterChange, products }: FiltersPr
                     };
                     onFilterChange(defaultFilters);
                 }}
-                className="w-full px-4 py-2 text-primary hover:bg-primary !hover:text-white border-2 border-primary rounded-lg transition-colors font-medium cursor-pointer"
+                className="w-full px-4 py-2 text-primary hover:bg-primary hover:!text-white border-2 border-primary rounded-lg transition-colors font-medium cursor-pointer"
             >
                 Clear All Filters
             </button>
