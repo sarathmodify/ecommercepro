@@ -1,10 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/src/components/ui/Button';
+import { useCart } from '@/src/hooks/useCart';
+import { useOrders } from '@/src/hooks/useOrders';
+import type { CreateOrderPayload, OrderItem } from '@/src/types/order';
 
 export default function CheckoutPage() {
+    const router = useRouter();
+    const { items, totalItems, subtotal, shipping, tax, total, emptyCart, hydrate } = useCart();
+    const { submitOrder, currentOrder, loading, error } = useOrders();
+
     const [step, setStep] = useState<'shipping' | 'payment' | 'review'>('shipping');
     const [formData, setFormData] = useState({
         // Shipping Info
@@ -25,32 +33,141 @@ export default function CheckoutPage() {
         cvv: '',
     });
 
-    // Mock cart data
-    const cartItems = [
-        { id: '1', name: 'Wireless Noise-Cancelling Headphones', price: 199.99, quantity: 1 },
-        { id: '2', name: 'Smart Fitness Watch Pro', price: 149.99, quantity: 2 },
-    ];
+    // ── Hydrate cart on mount ─────────────────────────────────────
+    useEffect(() => {
+        hydrate();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shipping = 0; // Free shipping
-    const tax = subtotal * 0.08;
-    const total = subtotal + shipping + tax;
+    // ── Redirect to cart if empty ─────────────────────────────────
+    useEffect(() => {
+        // Wait a tick for hydration before checking
+        const timeout = setTimeout(() => {
+            if (items.length === 0 && !currentOrder) {
+                router.push('/cart');
+            }
+        }, 100);
+        return () => clearTimeout(timeout);
+    }, [items.length, currentOrder, router]);
+
+    // ── On successful order → clear cart + show confirmation ──────
+    useEffect(() => {
+        if (currentOrder) {
+            emptyCart();
+        }
+    }, [currentOrder]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.SubmitEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (step === 'shipping') {
             setStep('payment');
         } else if (step === 'payment') {
             setStep('review');
         } else {
-            // Place order
-            alert('Order placed successfully! (Demo)');
+            // ── Place Order ──────────────────────────────────────
+            const orderItems: OrderItem[] = items.map((item) => ({
+                productId: String(item.product.id),
+                productName: item.product.productName,
+                category: item.product.category,
+                quantity: item.quantity,
+                price: item.product.price,
+            }));
+
+            const payload: CreateOrderPayload = {
+                customer: {
+                    customerId: crypto.randomUUID(),
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    address: {
+                        street: formData.address,
+                        city: formData.city,
+                        state: formData.state,
+                        zipcode: formData.zipCode,
+                        country: formData.country,
+                    },
+                },
+                items: orderItems,
+                totalAmount: total,
+                payment: {
+                    paymentMethod: formData.paymentMethod === 'card' ? 'Card' : 'PayPal',
+                    creditCard: formData.paymentMethod === 'card'
+                        ? formData.cardNumber
+                        : undefined,
+                },
+            };
+
+            submitOrder(payload);
         }
     };
+
+    // ── Order Confirmation Screen ────────────────────────────────
+    if (currentOrder) {
+        return (
+            <div className="min-h-screen bg-[var(--color-background-light)] flex items-center justify-center">
+                <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl border border-gray-200 p-8 text-center">
+                    {/* Success Icon */}
+                    <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+
+                    <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2">
+                        Order Placed Successfully!
+                    </h1>
+                    <p className="text-[var(--color-text-light)] mb-6">
+                        Thank you for your purchase.
+                    </p>
+
+                    {/* Order Details */}
+                    <div className="bg-[var(--color-background-light)] rounded-xl p-6 mb-6 text-left space-y-3">
+                        <div className="flex justify-between">
+                            <span className="text-[var(--color-text-light)]">Order ID</span>
+                            <span className="font-mono font-medium text-sm text-[var(--color-text)]">
+                                {currentOrder.orderId.slice(0, 18)}...
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-[var(--color-text-light)]">Date</span>
+                            <span className="font-medium text-[var(--color-text)]">
+                                {currentOrder.orderDate}
+                            </span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-[var(--color-text-light)]">Status</span>
+                            <span className="px-2 py-0.5 bg-primary text-white text-xs font-semibold rounded-full">
+                                {currentOrder.status}
+                            </span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-200 pt-3">
+                            <span className="font-semibold text-[var(--color-text)]">Total</span>
+                            <span className="font-bold text-primary text-lg">
+                                ${currentOrder.totalAmount.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <Link href="/orders" className="flex-1">
+                            <Button variant="primary" fullWidth>
+                                View Orders
+                            </Button>
+                        </Link>
+                        <Link href="/products" className="flex-1">
+                            <Button variant="outline" fullWidth>
+                                Keep Shopping
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[var(--color-background-light)]">
@@ -62,7 +179,7 @@ export default function CheckoutPage() {
                 </div>
             </div>
 
-            {/* Checkout Steps */}
+            {/* Checkout Steps Indicator */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex items-center justify-center mb-12">
                     {/* Step 1 */}
@@ -76,7 +193,7 @@ export default function CheckoutPage() {
                         </span>
                     </div>
 
-                    <div className="w-20 h-1 bg-gray-300 mx-4"></div>
+                    <div className={`w-20 h-1 mx-4 ${step !== 'shipping' ? 'bg-accent' : 'bg-gray-300'}`}></div>
 
                     {/* Step 2 */}
                     <div className="flex items-center">
@@ -94,7 +211,7 @@ export default function CheckoutPage() {
                         </span>
                     </div>
 
-                    <div className="w-20 h-1 bg-gray-300 mx-4"></div>
+                    <div className={`w-20 h-1 mx-4 ${step === 'review' ? 'bg-accent' : 'bg-gray-300'}`}></div>
 
                     {/* Step 3 */}
                     <div className="flex items-center">
@@ -107,6 +224,14 @@ export default function CheckoutPage() {
                         </span>
                     </div>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-6 bg-red-50 border border-red-300 rounded-lg p-4 text-red-700 text-center">
+                        <p className="font-medium">Failed to place order</p>
+                        <p className="text-sm mt-1">{error}</p>
+                    </div>
+                )}
 
                 <div className="grid lg:grid-cols-3 gap-8">
                     {/* Main Form */}
@@ -381,6 +506,25 @@ export default function CheckoutPage() {
                                             )}
                                         </p>
                                     </div>
+
+                                    {/* Order Items */}
+                                    <div className="border border-gray-200 rounded-lg p-6">
+                                        <h3 className="font-semibold text-[var(--color-text)] mb-4">
+                                            Items ({totalItems})
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {items.map((item) => (
+                                                <div key={item.product.id} className="flex justify-between text-sm">
+                                                    <span className="text-[var(--color-text-light)]">
+                                                        {item.product.productName} × {item.quantity}
+                                                    </span>
+                                                    <span className="font-medium text-[var(--color-text)]">
+                                                        ${(item.product.price * item.quantity).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -395,7 +539,14 @@ export default function CheckoutPage() {
                                         ← Back
                                     </Button>
                                 )}
-                                <Button type="submit" variant="accent" size="lg" className="flex-1">
+                                <Button
+                                    type="submit"
+                                    variant="accent"
+                                    size="lg"
+                                    className="flex-1"
+                                    loading={loading}
+                                    disabled={loading}
+                                >
                                     {step === 'review' ? 'Place Order' : 'Continue'}
                                 </Button>
                             </div>
@@ -408,12 +559,14 @@ export default function CheckoutPage() {
                             <h2 className="text-2xl font-bold text-[var(--color-text)] mb-6">Order Summary</h2>
 
                             <div className="space-y-4 mb-6">
-                                {cartItems.map((item) => (
-                                    <div key={item.id} className="flex justify-between text-sm">
+                                {items.map((item) => (
+                                    <div key={item.product.id} className="flex justify-between text-sm">
                                         <span className="text-[var(--color-text-light)]">
-                                            {item.name} × {item.quantity}
+                                            {item.product.productName} × {item.quantity}
                                         </span>
-                                        <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
+                                        <span className="font-medium">
+                                            ${(item.product.price * item.quantity).toFixed(2)}
+                                        </span>
                                     </div>
                                 ))}
 
@@ -424,7 +577,9 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="flex justify-between text-[var(--color-text-light)]">
                                         <span>Shipping</span>
-                                        <span className="text-accent font-medium">FREE</span>
+                                        <span className={shipping === 0 ? 'text-accent font-medium' : ''}>
+                                            {shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between text-[var(--color-text-light)]">
                                         <span>Tax</span>

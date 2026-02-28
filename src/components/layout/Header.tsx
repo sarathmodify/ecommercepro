@@ -1,11 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Button from '../ui/Button';
+import { useCart } from '@/src/hooks/useCart';
 
 export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { totalItems, hydrate } = useCart();
+
+    // Hydrate cart from localStorage on app boot
+    useEffect(() => {
+        hydrate();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
@@ -37,9 +44,17 @@ export default function Header() {
                         </Link>
                         <Link
                             href="/cart"
-                            className="text-[var(--color-text)] hover:text-primary transition-colors font-medium"
+                            className="text-[var(--color-text)] hover:text-primary transition-colors font-medium relative flex items-center gap-1"
                         >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
                             Cart
+                            {totalItems > 0 && (
+                                <span className="absolute -top-2 -right-4 bg-accent text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    {totalItems > 99 ? '99+' : totalItems}
+                                </span>
+                            )}
                         </Link>
                         <Link
                             href="/orders"
@@ -98,10 +113,15 @@ export default function Header() {
                             </Link>
                             <Link
                                 href="/cart"
-                                className="text-[var(--color-text)] hover:text-primary transition-colors font-medium py-2"
+                                className="text-[var(--color-text)] hover:text-primary transition-colors font-medium py-2 flex items-center gap-2"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 Cart
+                                {totalItems > 0 && (
+                                    <span className="bg-accent text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                        {totalItems > 99 ? '99+' : totalItems}
+                                    </span>
+                                )}
                             </Link>
                             <Link
                                 href="/orders"

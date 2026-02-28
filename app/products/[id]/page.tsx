@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Button from '@/src/components/ui/Button';
 import { useProducts } from '@/src/hooks/useProducts';
+import { useCart } from '@/src/hooks/useCart';
 
 // ------------------------------------------------------------------
 // Detail Page Skeleton — shown while loading
@@ -50,7 +51,10 @@ export default function ProductDetailPage() {
         clearProduct,
     } = useProducts();
 
+    const { addItem } = useCart();
+
     const [quantity, setQuantity] = useState(1);
+    const [cartAdded, setCartAdded] = useState(false);
 
     // ── Fetch product on mount, cleanup on unmount ─────────────────
     useEffect(() => {
@@ -63,8 +67,11 @@ export default function ProductDetailPage() {
     }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleAddToCart = () => {
-        // TODO: Cart integration in future weeks
-        alert(`Added ${quantity} × ${product?.productName} to cart!`);
+        if (product) {
+            addItem(product, quantity);
+            setCartAdded(true);
+            setTimeout(() => setCartAdded(false), 2000);
+        }
     };
 
     // ── Loading State ──────────────────────────────────────────────
@@ -256,13 +263,13 @@ export default function ProductDetailPage() {
                                 </button>
                             </div>
                             <Button
-                                variant="accent"
+                                variant={cartAdded ? 'primary' : 'accent'}
                                 size="lg"
                                 onClick={handleAddToCart}
                                 disabled={!inStock}
                                 className="flex-1"
                             >
-                                Add to Cart
+                                {cartAdded ? 'Added to Cart ✓' : 'Add to Cart'}
                             </Button>
                         </div>
 
